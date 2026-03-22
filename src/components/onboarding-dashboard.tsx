@@ -201,10 +201,19 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
   useEffect(() => {
     const stored = sessionStorage.getItem(`onboard_${intern.id}`);
     if (stored === "unlocked") {
-      setUnlocked(true);
       const savedCreds = sessionStorage.getItem(`creds_${intern.id}`);
+      let parsed: InternCredential[] | null = null;
       if (savedCreds) {
-        try { setCredentials(JSON.parse(savedCreds)); } catch { /* ignore */ }
+        try { parsed = JSON.parse(savedCreds); } catch { /* ignore */ }
+      }
+
+      if (parsed && parsed.length > 0) {
+        setUnlocked(true);
+        setCredentials(parsed);
+      } else {
+        sessionStorage.removeItem(`onboard_${intern.id}`);
+        sessionStorage.removeItem(`creds_${intern.id}`);
+        sessionStorage.removeItem(`creds_revealed_${intern.id}`);
       }
     }
 
