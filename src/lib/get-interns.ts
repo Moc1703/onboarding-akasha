@@ -2,7 +2,7 @@ import { getInternById, toPublic, interns as hardcodedInterns } from "@/data/int
 import type { InternProfile, InternPublic } from "@/data/interns";
 import { fetchInternsFromSheet, getInternFromSheet } from "./google-sheet";
 
-const useSheet = () => !!process.env.GOOGLE_SHEET_ID;
+const useSheet = () => !!(process.env.GOOGLE_SHEET_CSV_URL || process.env.GOOGLE_SHEET_ID);
 
 /** Get full intern profile (server-only, includes secrets) */
 export async function getIntern(id: string): Promise<InternProfile | undefined> {

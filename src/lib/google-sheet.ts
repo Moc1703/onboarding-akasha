@@ -66,20 +66,35 @@ function normalizeExpires(raw: string): string {
   return raw;
 }
 
-function sheetCsvUrl(sheetId: string, sheetName: string): string {
-  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+/**
+ * Build the CSV URL from the env var.
+ * Accepts either:
+ *   - A full published URL (starts with http)
+ *   - A plain Sheet ID (legacy, uses /gviz/tq endpoint)
+ */
+function getSheetCsvUrl(): string | null {
+  const val = process.env.GOOGLE_SHEET_CSV_URL || process.env.GOOGLE_SHEET_ID;
+  if (!val) return null;
+
+  if (val.startsWith("http")) {
+    const url = new URL(val);
+    url.searchParams.set("output", "csv");
+    return url.toString();
+  }
+
+  return `https://docs.google.com/spreadsheets/d/${val}/gviz/tq?tqx=out:csv&sheet=interns`;
 }
 
 export async function fetchInternsFromSheet(): Promise<InternProfile[]> {
-  const sheetId = process.env.GOOGLE_SHEET_ID;
-  if (!sheetId) return [];
+  const csvUrl = getSheetCsvUrl();
+  if (!csvUrl) return [];
 
   if (cache && Date.now() - cache.ts < CACHE_TTL) {
     return cache.data;
   }
 
   try {
-    const internsRes = await fetch(sheetCsvUrl(sheetId, "interns"), {
+    const internsRes = await fetch(csvUrl, {
       next: { revalidate: 60 },
     });
 
