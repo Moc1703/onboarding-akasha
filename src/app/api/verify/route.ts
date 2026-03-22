@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getInternById } from "@/data/interns";
+import { getIntern } from "@/lib/get-interns";
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
     }
 
-    const intern = getInternById(internId);
+    const intern = await getIntern(internId);
     if (!intern) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }

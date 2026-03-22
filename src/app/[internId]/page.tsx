@@ -1,18 +1,16 @@
 import { notFound } from "next/navigation";
-import { interns, getInternById, toPublic } from "@/data/interns";
+import { getPublicIntern, getAllInternIds } from "@/lib/get-interns";
 import OnboardingDashboard from "@/components/onboarding-dashboard";
 
 interface Props {
   params: Promise<{ internId: string }>;
 }
 
-export function generateStaticParams() {
-  return interns.map((i) => ({ internId: i.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props) {
   const { internId } = await params;
-  const intern = getInternById(internId);
+  const intern = await getPublicIntern(internId);
   if (!intern) return { title: "Not Found" };
   return {
     title: `Onboarding — ${intern.name} | Akasha Yoga Academy`,
@@ -22,8 +20,8 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function InternPage({ params }: Props) {
   const { internId } = await params;
-  const intern = getInternById(internId);
+  const intern = await getPublicIntern(internId);
   if (!intern) notFound();
 
-  return <OnboardingDashboard intern={toPublic(intern)} />;
+  return <OnboardingDashboard intern={intern} />;
 }
