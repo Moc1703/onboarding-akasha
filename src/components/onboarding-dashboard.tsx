@@ -13,6 +13,7 @@ import {
   CalendarDays,
   Building2,
   Sparkles,
+  ClipboardCheck,
 } from "lucide-react";
 import type { InternProfile } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
@@ -258,6 +259,36 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
               ))}
             </ul>
           </div>
+        </section>
+
+        <GoldDivider />
+
+        {/* ── Onboarding Quiz (Tally.so) ── */}
+        <section>
+          <SectionHeading>Onboarding Quiz</SectionHeading>
+
+          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
+            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/40 text-xs uppercase tracking-widest font-medium">
+              <ClipboardCheck className="w-4 h-4 text-gold/60" />
+              Complete before your first day
+            </div>
+
+            <div className="w-full">
+              <iframe
+                src={intern.quizUrl}
+                width="100%"
+                height="600"
+                frameBorder="0"
+                title="Onboarding Quiz"
+                className="w-full bg-white rounded-b-2xl"
+              />
+            </div>
+          </div>
+
+          <p className="mt-4 text-xs text-white/30 flex items-center gap-1.5">
+            <ClipboardCheck className="w-3 h-3" />
+            Please complete the quiz to confirm you have read all onboarding materials.
+          </p>
         </section>
 
         {/* ── Footer ── */}
