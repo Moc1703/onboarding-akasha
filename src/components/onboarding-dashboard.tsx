@@ -478,7 +478,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
 
                 <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
                   <KeyRound className="w-3 h-3" />
-                  Use these credentials to log in to 1Password. Change your master password after first login.
+                  Use these credentials to log in to 1Password. Do not change the master password — this is a shared team vault.
                 </p>
               </>
             )
