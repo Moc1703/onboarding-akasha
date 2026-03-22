@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useState, useRef } from "react";
 import {
-  ClipboardList,
   FileText,
   KeyRound,
-  LayoutGrid,
   Building2,
   Sparkles,
   ClipboardCheck,
@@ -28,26 +26,12 @@ import SopReader from "./sop-reader";
 
 /* ───────── Static Data ───────── */
 
-const preReadingMaterials = [
-  {
-    title: "Company Profile",
-    description: "Mission, values, culture, and team structure of Akasha Yoga Academy.",
-    icon: Building2,
-    href: "#",
-  },
-  {
-    title: "SOP & Workflow Guide",
-    description: "Standard operating procedures and daily workflows for your department.",
-    icon: ClipboardList,
-    href: "#",
-  },
-  {
-    title: "Tools Access Guide",
-    description: "Overview of tools and platforms: Asana, Google Workspace, Slack, and more.",
-    icon: LayoutGrid,
-    href: "#",
-  },
-];
+const COMPANY_PROFILE = {
+  title: "Company Profile",
+  description:
+    "Learn about Akasha Yoga Academy — our mission, values, yoga lineage, and the team you'll be working with.",
+  href: "https://www.akashayogaacademy.com/about",
+};
 
 const checklistItems = [
   "Read all pre-reading materials",
@@ -344,29 +328,28 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">1</span>
             <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 1</span>
           </div>
-          <SectionHeading id="prereading">Pre-reading Materials</SectionHeading>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {preReadingMaterials.map((item) => (
-              <article
-                key={item.title}
-                className="group rounded-2xl border border-white/[0.06] bg-charcoal-light p-6 transition-all duration-300 hover:border-gold/20 hover:shadow-[0_0_30px_-10px_rgba(184,145,70,0.1)]"
-              >
-                <div className="mb-4 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gold/10 text-gold">
-                  <item.icon className="w-5 h-5" />
-                </div>
-                <h3 className="text-base font-semibold text-white mb-1.5">{item.title}</h3>
-                <p className="text-sm text-white/45 leading-relaxed mb-5">{item.description}</p>
+          <SectionHeading id="prereading">Pre-reading</SectionHeading>
+          <article className="group rounded-2xl border border-white/[0.06] bg-charcoal-light p-6 sm:p-8 transition-all duration-300 hover:border-gold/20 hover:shadow-[0_0_30px_-10px_rgba(184,145,70,0.1)]">
+            <div className="flex items-start gap-5">
+              <div className="shrink-0 inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gold/10 text-gold">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-white mb-1.5">{COMPANY_PROFILE.title}</h3>
+                <p className="text-sm text-white/50 leading-relaxed mb-5">{COMPANY_PROFILE.description}</p>
                 <a
-                  href={item.href}
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-gold hover:text-gold-light transition-colors"
+                  href={COMPANY_PROFILE.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold/10 border border-gold/20 text-sm font-medium text-gold hover:bg-gold/20 transition-colors"
                 >
-                  <FileText className="w-3.5 h-3.5" />
-                  View Document
+                  <FileText className="w-4 h-4" />
+                  Read Company Profile
                   <span className="transition-transform duration-200 group-hover:translate-x-0.5">&rarr;</span>
                 </a>
-              </article>
-            ))}
-          </div>
+              </div>
+            </div>
+          </article>
         </section>
 
         <GoldDivider />
