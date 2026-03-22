@@ -45,6 +45,27 @@ function parseCsvLine(line: string): string[] {
   return result;
 }
 
+/**
+ * Normalize accessExpires to ISO 8601 format.
+ * Accepts either full ISO ("2026-04-06T23:59:59+07:00")
+ * or a human-readable date ("6 April 2026", "30 March 2026").
+ * Human-readable dates are set to end-of-day 23:59:59 WIB (+07:00).
+ */
+function normalizeExpires(raw: string): string {
+  if (!raw) return "";
+  if (raw.includes("T")) return raw;
+
+  const parsed = new Date(raw);
+  if (!isNaN(parsed.getTime())) {
+    const y = parsed.getFullYear();
+    const m = String(parsed.getMonth() + 1).padStart(2, "0");
+    const d = String(parsed.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}T23:59:59+07:00`;
+  }
+
+  return raw;
+}
+
 function sheetCsvUrl(sheetId: string, sheetName: string): string {
   return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
 }
@@ -80,7 +101,7 @@ export async function fetchInternsFromSheet(): Promise<InternProfile[]> {
           name: row.name || "",
           department: dept,
           startDate: row.startDate || "",
-          accessExpires: row.accessExpires || "",
+          accessExpires: normalizeExpires(row.accessExpires || ""),
           accessKey: row.accessKey || "",
           quizUrl: deptConfig.quizUrl,
           sopFile: deptConfig.sopFile,
