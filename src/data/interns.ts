@@ -7,17 +7,13 @@ export interface InternProfile {
   accessExpires: string;
   /** Unique key each intern must enter to unlock their dashboard */
   accessKey: string;
-  /** Tally.so form URL for onboarding quiz (e.g. https://tally.so/r/xxxxxxx) */
+  /** Tally.so form URL for onboarding quiz */
   quizUrl: string;
+  /** Path to downloadable SOP document in /public */
+  sopFile: string;
   credentials: { tool: string; username: string; password: string }[];
 }
 
-/**
- * Add / remove interns here.
- * Each intern gets a unique URL: /<id>
- * They must enter their `accessKey` to unlock the page.
- * `accessExpires` controls when their onboarding page becomes inaccessible.
- */
 export const interns: InternProfile[] = [
   {
     id: "ayu",
@@ -27,6 +23,7 @@ export const interns: InternProfile[] = [
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-AYU-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
+    sopFile: "/docs/PA-Department-Intern-SOP.docx",
     credentials: [
       { tool: "Google Workspace", username: "ayu@akashayoga.com", password: "Temp@1234" },
       { tool: "Notion", username: "ayu@akashayoga.com", password: "Temp@1234" },
@@ -42,6 +39,7 @@ export const interns: InternProfile[] = [
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-RINA-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
+    sopFile: "/docs/PA-Department-Intern-SOP.docx",
     credentials: [
       { tool: "Google Workspace", username: "rina@akashayoga.com", password: "Temp@5678" },
       { tool: "Notion", username: "rina@akashayoga.com", password: "Temp@5678" },
@@ -57,6 +55,7 @@ export const interns: InternProfile[] = [
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-BUDI-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
+    sopFile: "/docs/PA-Department-Intern-SOP.docx",
     credentials: [
       { tool: "Google Workspace", username: "budi@akashayoga.com", password: "Temp@9012" },
       { tool: "Notion", username: "budi@akashayoga.com", password: "Temp@9012" },
