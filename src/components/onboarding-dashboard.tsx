@@ -255,9 +255,19 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
 
   const handleExpired = useCallback(() => setExpired(true), []);
   const handleUnlocked = useCallback((creds: InternCredential[]) => {
+    if (!creds?.length) return;
     setUnlocked(true);
     setCredentials(creds);
   }, []);
+
+  const handleRelock = useCallback(() => {
+    sessionStorage.removeItem(`onboard_${intern.id}`);
+    sessionStorage.removeItem(`creds_${intern.id}`);
+    sessionStorage.removeItem(`creds_revealed_${intern.id}`);
+    setUnlocked(false);
+    setCredentials(null);
+    setCredentialsRevealed(false);
+  }, [intern.id]);
 
   const handleSopRead = useCallback(() => {
     sessionStorage.setItem(`sop_read_${intern.id}`, "true");
@@ -473,9 +483,22 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
               </>
             )
           ) : (
-            <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8 flex flex-col items-center justify-center gap-3 text-center">
+            <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8 flex flex-col items-center justify-center gap-4 text-center max-w-lg mx-auto">
               <Lock className="w-6 h-6 text-white/20" />
-              <p className="text-sm text-white/40">Credentials could not be loaded. Please refresh or re-enter your access key.</p>
+              <div className="space-y-2">
+                <p className="text-sm text-white/60 font-medium">Credentials unavailable</p>
+                <p className="text-sm text-white/40 leading-relaxed">
+                  The server could not load 1Password details. This usually means the deployment is missing environment variables
+                  (<span className="font-mono text-white/50">ONBOARD_1P_*</span>). If you&apos;re an intern, contact HR.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRelock}
+                className="text-sm font-medium text-gold hover:text-gold-light underline underline-offset-4"
+              >
+                Re-enter access key
+              </button>
             </div>
           )}
         </section>

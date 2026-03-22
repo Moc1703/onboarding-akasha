@@ -35,10 +35,17 @@ export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
 
         const data = await res.json();
 
-        if (res.ok && data.success) {
+        if (res.ok && data.success && Array.isArray(data.credentials) && data.credentials.length > 0) {
           sessionStorage.setItem(`onboard_${intern.id}`, "unlocked");
           sessionStorage.setItem(`creds_${intern.id}`, JSON.stringify(data.credentials));
           onUnlocked(data.credentials);
+        } else if (res.status === 503) {
+          setError(
+            data.message ||
+              "Credentials are not available yet. Please contact HR or try again later."
+          );
+        } else if (res.ok && data.success && (!Array.isArray(data.credentials) || data.credentials.length === 0)) {
+          setError("Credentials are not configured on the server. Please contact HR.");
         } else if (res.status === 401) {
           setAttempts((a) => a + 1);
           setError("Invalid access key.");

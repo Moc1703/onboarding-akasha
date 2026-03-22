@@ -41,6 +41,17 @@ export async function POST(request: NextRequest) {
       ? intern.credentials
       : getCredentialsFromEnv();
 
+    if (!credentials.length) {
+      return NextResponse.json(
+        {
+          error: "credentials_not_configured",
+          message:
+            "Server has no credentials configured. Ask the admin to set ONBOARD_1P_ACCOUNT, ONBOARD_1P_PASSWORD, and ONBOARD_1P_SECRET_KEY in Vercel.",
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       credentials,

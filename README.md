@@ -164,7 +164,10 @@ POST /api/verify
 | `ONBOARD_1P_ACCOUNT` | Yes | `.env.local` + Vercel | 1Password account email |
 | `ONBOARD_1P_PASSWORD` | Yes | `.env.local` + Vercel | 1Password master password |
 | `ONBOARD_1P_SECRET_KEY` | Yes | `.env.local` + Vercel | 1Password secret key |
-| `GOOGLE_SHEET_ID` | No | `.env.local` + Vercel | Google Sheet ID for intern data |
+| `GOOGLE_SHEET_CSV_URL` | No* | `.env.local` + Vercel | Published CSV URL from “Publish to web” (preferred) |
+| `GOOGLE_SHEET_ID` | No* | `.env.local` + Vercel | Legacy: spreadsheet ID (needs sheet shared publicly; may 401 if only published) |
+
+\*Use **`GOOGLE_SHEET_CSV_URL`** with the URL Google gives after **File → Publish to web → CSV**. If Step 4 shows “Credentials unavailable”, check that all three **`ONBOARD_1P_*`** variables are set in **Vercel → Settings → Environment Variables** for **Production** (and redeploy).
 
 **Important:** These are stored in `.env.local` (gitignored, never pushed) and in Vercel environment variables. Never put credentials in source code.
 
@@ -172,7 +175,7 @@ POST /api/verify
 
 ## Data Sources
 
-The system supports two data sources. If `GOOGLE_SHEET_ID` is set, Google Sheets is used. Otherwise, it falls back to hardcoded data.
+The system supports two data sources. If `GOOGLE_SHEET_CSV_URL` or `GOOGLE_SHEET_ID` is set, Google Sheets is used. Otherwise, it falls back to hardcoded data.
 
 ### Option A: Google Sheets (Recommended)
 
@@ -200,15 +203,14 @@ Column details:
    - Select **Entire document** → **CSV**
    - Click Publish
 
-4. **Copy the Sheet ID** from the URL:
+4. **Copy the published link** Google shows (it looks like `.../spreadsheets/d/e/2PACX-.../pub?...`).
+
+5. Add to `.env.local` (use the full published URL; `output=csv` is added automatically if missing):
    ```
-   https://docs.google.com/spreadsheets/d/THIS_PART_IS_THE_ID/edit
+   GOOGLE_SHEET_CSV_URL=https://docs.google.com/spreadsheets/d/e/2PACX-.../pub?output=csv
    ```
 
-5. Add to `.env.local`:
-   ```
-   GOOGLE_SHEET_ID=your_sheet_id_here
-   ```
+   Alternatively you can paste the URL with `gid=` from the browser — the app normalizes it.
 
 **Note:** `quizUrl` and `sopFile` are NOT in the sheet — they're auto-derived from the `department` field via `department-config.ts`.
 
@@ -309,7 +311,7 @@ Test access keys for hardcoded interns:
    ONBOARD_1P_ACCOUNT=rise@akashayogaacademy.com
    ONBOARD_1P_PASSWORD=your_password_here
    ONBOARD_1P_SECRET_KEY=your_secret_key_here
-   GOOGLE_SHEET_ID=your_sheet_id_here      # optional
+   GOOGLE_SHEET_CSV_URL=https://docs.google.com/spreadsheets/d/e/.../pub?output=csv   # optional
    ```
 
 5. Deploy. Each push to `main` triggers auto-deploy.
@@ -377,7 +379,8 @@ Format: ISO 8601 with timezone, e.g. `2026-05-01T23:59:59+07:00`
 
 | Problem | Cause | Fix |
 |---|---|---|
-| "Credentials could not be loaded" | Env vars not set or dev server started before `.env.local` existed | Add env vars to `.env.local`, restart dev server (`npm run dev`) |
+| Step 4 “Credentials unavailable” / empty | `ONBOARD_1P_*` missing on **Vercel Production** (or wrong environment selected) | Add all three vars in Vercel → Environment Variables → **Production** → Redeploy. Passwords with `*` may need careful paste. |
+| Same issue locally | `.env.local` missing or dev server not restarted | Add `ONBOARD_1P_*` to `.env.local`, restart `npm run dev` |
 | Intern page shows 404 | `id` doesn't match any intern | Check Google Sheet or `interns.ts` for the correct `id` |
 | Quiz is locked | SOP hasn't been fully read | Scroll the SOP in Step 2 to 95%+ and click "Confirm & Unlock Quiz" |
 | Google Sheet changes not showing | 1-minute cache | Wait ~1 minute, or restart dev server locally |
