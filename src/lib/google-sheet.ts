@@ -1,4 +1,5 @@
 import type { InternProfile, InternPublic, InternCredential } from "@/data/interns";
+import { getDepartmentConfig } from "@/data/department-config";
 
 const CACHE_TTL = 60_000; // 1 minute
 
@@ -87,17 +88,21 @@ export async function fetchInternsFromSheet(): Promise<InternProfile[]> {
 
     const interns: InternProfile[] = internRows
       .filter((row) => row.id)
-      .map((row) => ({
-        id: row.id,
-        name: row.name || "",
-        department: row.department || "",
-        startDate: row.startDate || "",
-        accessExpires: row.accessExpires || "",
-        accessKey: row.accessKey || "",
-        quizUrl: row.quizUrl || "",
-        sopFile: row.sopFile || "",
-        credentials: credsByIntern.get(row.id) || [],
-      }));
+      .map((row) => {
+        const dept = row.department || "";
+        const deptConfig = getDepartmentConfig(dept);
+        return {
+          id: row.id,
+          name: row.name || "",
+          department: dept,
+          startDate: row.startDate || "",
+          accessExpires: row.accessExpires || "",
+          accessKey: row.accessKey || "",
+          quizUrl: deptConfig.quizUrl,
+          sopFile: deptConfig.sopFile,
+          credentials: credsByIntern.get(row.id) || [],
+        };
+      });
 
     cache = { data: interns, ts: Date.now() };
     return interns;
