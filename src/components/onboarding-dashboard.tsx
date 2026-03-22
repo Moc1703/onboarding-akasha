@@ -2,14 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  BookOpen,
   ClipboardList,
-  Download,
   FileText,
   KeyRound,
   LayoutGrid,
   CheckCircle2,
-  Circle,
   CalendarDays,
   Building2,
   Sparkles,
@@ -22,6 +19,7 @@ import type { InternProfile } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
 import ExpiredPage from "./expired-page";
 import AccessGate from "./access-gate";
+import SopReader from "./sop-reader";
 
 const preReadingMaterials = [
   {
@@ -229,56 +227,15 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Department Specific SOP ── */}
+        {/* ── Department SOP Reader ── */}
         <section>
           <SectionHeading>Department SOP</SectionHeading>
-
-          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-            <div className="p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-              <div className="flex items-start gap-4">
-                <div className="mt-0.5 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gold/10 text-gold shrink-0">
-                  <BookOpen className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-white mb-1">{intern.department} SOP</h3>
-                  <p className="text-sm text-white/40">
-                    Review the full Standard Operating Procedures before your first day.
-                  </p>
-                </div>
-              </div>
-
-              <a
-                href={intern.sopFile}
-                download
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-charcoal font-semibold text-sm hover:bg-gold-light transition-colors shrink-0"
-              >
-                <Download className="w-4 h-4" />
-                Download SOP
-              </a>
-            </div>
-
-            <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-0">
-              {!sopRead ? (
-                <div className="pt-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <p className="text-sm text-white/35">
-                    Confirm you&apos;ve read the SOP to unlock the onboarding quiz.
-                  </p>
-                  <button
-                    onClick={handleSopRead}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gold/30 bg-gold/10 text-gold font-semibold text-sm hover:bg-gold/20 transition-colors shrink-0 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    I have read the SOP
-                  </button>
-                </div>
-              ) : (
-                <div className="pt-5 border-t border-white/[0.06] flex items-center gap-2 text-emerald-400/80 text-sm font-medium">
-                  <CheckCircle2 className="w-4 h-4" />
-                  SOP confirmed — Quiz unlocked
-                </div>
-              )}
-            </div>
-          </div>
+          <SopReader
+            sopFile={intern.sopFile}
+            department={intern.department}
+            sopRead={sopRead}
+            onConfirmRead={handleSopRead}
+          />
         </section>
 
         <GoldDivider />

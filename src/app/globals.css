@@ -18,3 +18,87 @@
     @apply bg-gold/30 text-white;
   }
 }
+
+/* SOP document reader styles */
+.sop-content {
+  scrollbar-width: thin;
+  scrollbar-color: #B89146 transparent;
+}
+
+.sop-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sop-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sop-content::-webkit-scrollbar-thumb {
+  background: #B89146;
+  border-radius: 3px;
+}
+
+.sop-content h1,
+.sop-content h2,
+.sop-content h3,
+.sop-content h4 {
+  color: #1a1a1a;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.sop-content h1 { font-size: 1.5rem; }
+.sop-content h2 { font-size: 1.25rem; }
+.sop-content h3 { font-size: 1.1rem; }
+
+.sop-content p {
+  color: #333;
+  line-height: 1.75;
+  margin-bottom: 0.75em;
+}
+
+.sop-content ul,
+.sop-content ol {
+  padding-left: 1.5em;
+  margin-bottom: 1em;
+  color: #333;
+}
+
+.sop-content li {
+  margin-bottom: 0.35em;
+  line-height: 1.65;
+}
+
+.sop-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.875rem;
+}
+
+.sop-content th,
+.sop-content td {
+  border: 1px solid #e0e0e0;
+  padding: 0.5em 0.75em;
+  text-align: left;
+  color: #333;
+}
+
+.sop-content th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+
+.sop-content strong {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.sop-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1em 0;
+}
