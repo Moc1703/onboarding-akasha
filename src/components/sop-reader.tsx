@@ -147,7 +147,7 @@ export default function SopReader({ sopFile, department, sopRead, onConfirmRead 
         <div
           ref={containerRef}
           onScroll={handleScroll}
-          className="max-h-[500px] overflow-y-auto px-6 sm:px-10 py-8 bg-white text-charcoal sop-content"
+          className="max-h-[70vh] sm:max-h-[500px] overflow-y-auto px-5 sm:px-10 py-6 sm:py-8 bg-white text-charcoal sop-content"
         >
           <div
             className="prose prose-sm max-w-none"

@@ -1,25 +1,30 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import {
   ClipboardList,
   FileText,
   KeyRound,
   LayoutGrid,
-  CheckCircle2,
-  CalendarDays,
   Building2,
   Sparkles,
   ClipboardCheck,
   Lock,
   Calendar,
   Check,
+  CalendarDays,
+  BookOpen,
+  ShieldCheck,
+  ListChecks,
+  ChevronRight,
 } from "lucide-react";
 import type { InternProfile } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
 import ExpiredPage from "./expired-page";
 import AccessGate from "./access-gate";
 import SopReader from "./sop-reader";
+
+/* ───────── Static Data ───────── */
 
 const preReadingMaterials = [
   {
@@ -44,9 +49,9 @@ const preReadingMaterials = [
 
 const checklistItems = [
   "Read all pre-reading materials",
-  "Download and review the Department SOP",
+  "Read the full Department SOP",
   "Set up your Google Workspace account",
-  "Join the Slack #pa-department channel",
+  "Join the Slack department channel",
   "Introduce yourself in #general",
   "Complete the Onboarding Quiz",
   "Confirm your schedule with your supervisor",
@@ -74,9 +79,20 @@ const schedule = {
   },
 };
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+const ROADMAP_STEPS = [
+  { id: "prereading", label: "Pre-reading", icon: BookOpen },
+  { id: "sop", label: "Read SOP", icon: FileText },
+  { id: "schedule", label: "Schedule", icon: Calendar },
+  { id: "credentials", label: "Credentials", icon: ShieldCheck },
+  { id: "checklist", label: "Checklist", icon: ListChecks },
+  { id: "quiz", label: "Quiz", icon: ClipboardCheck },
+] as const;
+
+/* ───────── Sub-components ───────── */
+
+function SectionHeading({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 className="text-2xl font-semibold tracking-tight text-white mb-8 flex items-center gap-3">
+    <h2 id={id} className="text-2xl font-semibold tracking-tight text-white mb-8 flex items-center gap-3 scroll-mt-20">
       <span className="h-px w-8 bg-gradient-to-r from-gold/80 to-gold/20 shrink-0" />
       {children}
     </h2>
@@ -84,7 +100,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 function GoldDivider() {
-  return <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent my-14 sm:my-16" />;
+  return <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent my-12 sm:my-14" />;
 }
 
 function ScheduleTable({ title, tasks }: { title: string; tasks: typeof schedule.week1.tasks }) {
@@ -93,9 +109,9 @@ function ScheduleTable({ title, tasks }: { title: string; tasks: typeof schedule
       <h3 className="text-xs uppercase tracking-[0.2em] text-gold/70 font-semibold mb-4">{title}</h3>
       <div className="rounded-xl border border-white/[0.06] overflow-hidden">
         <div className="hidden sm:grid sm:grid-cols-[1.2fr_0.8fr_2fr] bg-charcoal-lighter/50">
-          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/30 font-medium">Task</div>
-          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/30 font-medium">Due Date</div>
-          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/30 font-medium">Description</div>
+          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/35 font-medium">Task</div>
+          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/35 font-medium">Due Date</div>
+          <div className="px-5 py-3 text-xs uppercase tracking-widest text-white/35 font-medium">Description</div>
         </div>
         {tasks.map((row, i) => (
           <div
@@ -103,14 +119,84 @@ function ScheduleTable({ title, tasks }: { title: string; tasks: typeof schedule
             className={`sm:grid sm:grid-cols-[1.2fr_0.8fr_2fr] px-5 py-4 ${i !== tasks.length - 1 ? "border-b border-white/[0.04]" : ""} hover:bg-white/[0.015] transition-colors`}
           >
             <div className="font-medium text-white text-sm mb-1 sm:mb-0">{row.task}</div>
-            <div className="text-gold/70 text-sm mb-2 sm:mb-0 font-mono text-xs sm:text-sm sm:font-sans">{row.due}</div>
-            <div className="text-white/45 text-sm leading-relaxed">{row.desc}</div>
+            <div className="text-gold/70 text-sm mb-2 sm:mb-0">{row.due}</div>
+            <div className="text-white/50 text-sm leading-relaxed">{row.desc}</div>
           </div>
         ))}
       </div>
     </div>
   );
 }
+
+/* ───────── Roadmap / Step Progress ───────── */
+
+function Roadmap({ sopRead, activeSection }: { sopRead: boolean; activeSection: string }) {
+  const getStepStatus = (id: string) => {
+    const order: string[] = ROADMAP_STEPS.map((s) => s.id);
+    const activeIdx = order.indexOf(activeSection);
+    const stepIdx = order.indexOf(id);
+
+    if (id === "quiz" && !sopRead) return "locked";
+    if (stepIdx < activeIdx) return "done";
+    if (stepIdx === activeIdx) return "active";
+    return "upcoming";
+  };
+
+  return (
+    <nav className="sticky top-0 z-30 bg-charcoal/95 backdrop-blur-md border-b border-white/[0.06]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-8">
+        <div className="flex items-center gap-1 py-3 overflow-x-auto no-scrollbar">
+          {ROADMAP_STEPS.map((step, i) => {
+            const status = getStepStatus(step.id);
+            const Icon = step.icon;
+
+            return (
+              <div key={step.id} className="flex items-center shrink-0">
+                {i > 0 && (
+                  <ChevronRight className={`w-3.5 h-3.5 mx-1 ${status === "done" ? "text-gold/50" : "text-white/10"}`} />
+                )}
+                <a
+                  href={`#${step.id}`}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    status === "active"
+                      ? "bg-gold/15 text-gold border border-gold/25"
+                      : status === "done"
+                        ? "text-gold/60 hover:bg-white/[0.03]"
+                        : status === "locked"
+                          ? "text-white/20 cursor-not-allowed"
+                          : "text-white/40 hover:bg-white/[0.03] hover:text-white/60"
+                  }`}
+                  onClick={(e) => {
+                    if (status === "locked") e.preventDefault();
+                  }}
+                >
+                  <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                    status === "done"
+                      ? "bg-gold/20"
+                      : status === "active"
+                        ? "bg-gold/25"
+                        : "bg-white/[0.04]"
+                  }`}>
+                    {status === "done" ? (
+                      <Check className="w-3 h-3 text-gold" strokeWidth={3} />
+                    ) : status === "locked" ? (
+                      <Lock className="w-2.5 h-2.5 text-white/20" />
+                    ) : (
+                      <Icon className="w-2.5 h-2.5" />
+                    )}
+                  </div>
+                  <span className="hidden sm:inline">{step.label}</span>
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+/* ───────── Main Dashboard ───────── */
 
 export default function OnboardingDashboard({ intern }: { intern: InternProfile }) {
   const [expired, setExpired] = useState(
@@ -120,6 +206,9 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
   const [sopRead, setSopRead] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [checked, setChecked] = useState<boolean[]>(() => checklistItems.map(() => false));
+  const [activeSection, setActiveSection] = useState<string>("prereading");
+
+  const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`onboard_${intern.id}`);
@@ -135,6 +224,28 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
     setHydrated(true);
   }, [intern.id]);
+
+  // Track which section is in view
+  useEffect(() => {
+    const ids = ROADMAP_STEPS.map((s) => s.id);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-20% 0px -60% 0px" }
+    );
+
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleExpired = useCallback(() => setExpired(true), []);
   const handleUnlocked = useCallback(() => setUnlocked(true), []);
@@ -168,39 +279,56 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
   const progressPct = Math.round((completedCount / checklistItems.length) * 100);
 
   return (
-    <div className="min-h-screen bg-charcoal">
+    <div className="min-h-screen bg-charcoal" ref={mainRef}>
       <div className="h-1 bg-gradient-to-r from-gold-dark via-gold to-gold-dark" />
 
-      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-12 sm:py-20">
+      {/* Sticky roadmap navigation */}
+      <Roadmap sopRead={sopRead} activeSection={activeSection} />
+
+      <div className="max-w-5xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
 
         {/* ── Hero Header ── */}
-        <header className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/5 text-gold text-sm font-medium mb-8">
+        <header className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-gold/30 bg-gold/5 text-gold text-sm font-medium mb-6">
             <Sparkles className="w-3.5 h-3.5" />
             {intern.department}
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white mb-4">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white mb-3">
             Welcome to the Team!
           </h1>
 
-          <p className="text-xl sm:text-2xl text-gold font-light mb-6">
+          <p className="text-xl sm:text-2xl text-gold font-light mb-5">
             {intern.name}
           </p>
 
-          <div className="inline-flex items-center gap-2 text-white/40 text-sm mb-10">
+          <div className="inline-flex items-center gap-2 text-white/50 text-sm mb-8">
             <CalendarDays className="w-4 h-4" />
             <span>Start Date: {intern.startDate}</span>
           </div>
 
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-8">
             <CountdownTimer expiresAt={intern.accessExpires} onExpired={handleExpired} />
+          </div>
+
+          {/* Quick guide callout */}
+          <div className="max-w-xl mx-auto rounded-2xl border border-gold/15 bg-gold/[0.04] p-5 text-left">
+            <p className="text-sm font-semibold text-gold mb-2">Your Onboarding Roadmap</p>
+            <p className="text-sm text-white/50 leading-relaxed">
+              Follow each step in order: start with the pre-reading materials, read the full SOP,
+              review your schedule &amp; credentials, complete the checklist, then take the quiz.
+              Use the navigation bar above to jump between sections.
+            </p>
           </div>
         </header>
 
-        {/* ── Pre-reading Materials ── */}
+        {/* ══════ STEP 1: Pre-reading ══════ */}
         <section>
-          <SectionHeading>Pre-reading Materials</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">1</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 1</span>
+          </div>
+          <SectionHeading id="prereading">Pre-reading Materials</SectionHeading>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {preReadingMaterials.map((item) => (
               <article
@@ -211,7 +339,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
                   <item.icon className="w-5 h-5" />
                 </div>
                 <h3 className="text-base font-semibold text-white mb-1.5">{item.title}</h3>
-                <p className="text-sm text-white/40 leading-relaxed mb-5">{item.description}</p>
+                <p className="text-sm text-white/45 leading-relaxed mb-5">{item.description}</p>
                 <a
                   href={item.href}
                   className="inline-flex items-center gap-1.5 text-sm font-medium text-gold hover:text-gold-light transition-colors"
@@ -227,9 +355,13 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Department SOP Reader ── */}
+        {/* ══════ STEP 2: SOP ══════ */}
         <section>
-          <SectionHeading>Department SOP</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">2</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 2</span>
+          </div>
+          <SectionHeading id="sop">Department SOP</SectionHeading>
           <SopReader
             sopFile={intern.sopFile}
             department={intern.department}
@@ -240,12 +372,16 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Onboarding Schedule ── */}
+        {/* ══════ STEP 3: Schedule ══════ */}
         <section>
-          <SectionHeading>Onboarding Schedule</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">3</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 3</span>
+          </div>
+          <SectionHeading id="schedule">Onboarding Schedule</SectionHeading>
 
           <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-5 sm:p-8">
-            <div className="flex items-center gap-2 text-white/30 text-xs uppercase tracking-widest font-medium mb-6">
+            <div className="flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium mb-6">
               <Calendar className="w-4 h-4 text-gold/50" />
               2-Week Program
             </div>
@@ -256,12 +392,16 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Credentials & Access ── */}
+        {/* ══════ STEP 4: Credentials ══════ */}
         <section>
-          <SectionHeading>Credentials &amp; Access</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">4</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 4</span>
+          </div>
+          <SectionHeading id="credentials">Credentials &amp; Access</SectionHeading>
 
           <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/30 text-xs uppercase tracking-widest font-medium">
+            <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
               <KeyRound className="w-4 h-4 text-gold/50" />
               Secure Credentials
             </div>
@@ -270,7 +410,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
             <div className="hidden sm:block">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-white/[0.06] text-white/30 text-xs uppercase tracking-widest">
+                  <tr className="border-b border-white/[0.06] text-white/35 text-xs uppercase tracking-widest">
                     <th className="px-6 py-3 font-medium">Tool</th>
                     <th className="px-6 py-3 font-medium">Username</th>
                     <th className="px-6 py-3 font-medium">Temporary Password</th>
@@ -283,8 +423,8 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
                       className={`${i !== intern.credentials.length - 1 ? "border-b border-white/[0.04]" : ""} hover:bg-white/[0.015] transition-colors`}
                     >
                       <td className="px-6 py-4 text-white font-medium text-sm">{cred.tool}</td>
-                      <td className="px-6 py-4 text-white/50 font-mono text-sm">{cred.username}</td>
-                      <td className="px-6 py-4 text-white/50 font-mono text-sm">{cred.password}</td>
+                      <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.username}</td>
+                      <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.password}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -297,19 +437,19 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
                 <div key={cred.tool} className="px-5 py-4 space-y-2">
                   <p className="text-white font-medium text-sm">{cred.tool}</p>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/30">Username</span>
-                    <span className="text-white/50 font-mono text-xs">{cred.username}</span>
+                    <span className="text-white/35">Username</span>
+                    <span className="text-white/55 font-mono text-xs">{cred.username}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-white/30">Password</span>
-                    <span className="text-white/50 font-mono text-xs">{cred.password}</span>
+                    <span className="text-white/35">Password</span>
+                    <span className="text-white/55 font-mono text-xs">{cred.password}</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <p className="mt-3 text-xs text-white/25 flex items-center gap-1.5">
+          <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
             <KeyRound className="w-3 h-3" />
             Change all temporary passwords upon first login.
           </p>
@@ -317,15 +457,18 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Interactive Checklist ── */}
+        {/* ══════ STEP 5: Checklist ══════ */}
         <section>
-          <SectionHeading>First Day Checklist</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">5</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Step 5</span>
+          </div>
+          <SectionHeading id="checklist">First Day Checklist</SectionHeading>
 
           <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-            {/* Progress bar */}
             <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06]">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-white/30 uppercase tracking-widest font-medium">Progress</span>
+                <span className="text-xs text-white/35 uppercase tracking-widest font-medium">Progress</span>
                 <span className="text-xs text-white/50 font-mono">{completedCount}/{checklistItems.length}</span>
               </div>
               <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
@@ -351,7 +494,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
                       {checked[i] && <Check className="w-3 h-3 text-charcoal" strokeWidth={3} />}
                     </div>
                     <span className={`text-sm transition-colors duration-200 ${
-                      checked[i] ? "text-white/30 line-through" : "text-white/70"
+                      checked[i] ? "text-white/35 line-through" : "text-white/70"
                     }`}>
                       {label}
                     </span>
@@ -364,14 +507,18 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
         <GoldDivider />
 
-        {/* ── Onboarding Quiz (Tally.so) ── */}
+        {/* ══════ STEP 6: Quiz ══════ */}
         <section>
-          <SectionHeading>Onboarding Quiz</SectionHeading>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gold/15 text-gold text-xs font-bold">6</span>
+            <span className="text-xs uppercase tracking-widest text-white/30 font-medium">Final Step</span>
+          </div>
+          <SectionHeading id="quiz">Onboarding Quiz</SectionHeading>
 
           {sopRead ? (
             <>
               <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/30 text-xs uppercase tracking-widest font-medium">
+                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
                   <ClipboardCheck className="w-4 h-4 text-gold/50" />
                   Complete before your first day
                 </div>
@@ -386,21 +533,21 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
                   />
                 </div>
               </div>
-              <p className="mt-3 text-xs text-white/25 flex items-center gap-1.5">
+              <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
                 <ClipboardCheck className="w-3 h-3" />
                 Complete the quiz to confirm you&apos;ve read all onboarding materials.
               </p>
             </>
           ) : (
             <div className="relative rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-              <div className="absolute inset-0 bg-charcoal/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3">
+              <div className="absolute inset-0 bg-charcoal/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3 px-6 text-center">
                 <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                  <Lock className="w-5 h-5 text-white/25" />
+                  <Lock className="w-5 h-5 text-white/30" />
                 </div>
-                <p className="text-white/40 text-sm font-medium">Read the SOP first to unlock the quiz</p>
-                <p className="text-white/20 text-xs">Scroll up and confirm you&apos;ve read the Department SOP</p>
+                <p className="text-white/45 text-sm font-medium">Complete Step 2 to unlock the quiz</p>
+                <p className="text-white/25 text-xs">Read the full Department SOP and confirm to continue</p>
               </div>
-              <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/30 text-xs uppercase tracking-widest font-medium">
+              <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
                 <ClipboardCheck className="w-4 h-4 text-gold/50" />
                 Complete before your first day
               </div>
@@ -410,9 +557,9 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
         </section>
 
         {/* ── Footer ── */}
-        <footer className="mt-20 text-center">
+        <footer className="mt-16 text-center">
           <div className="w-full h-px bg-gradient-to-r from-transparent via-gold/15 to-transparent mb-8" />
-          <p className="text-xs text-white/20">
+          <p className="text-xs text-white/30">
             &copy; {new Date().getFullYear()} Akasha Yoga Academy. All rights reserved.
           </p>
         </footer>

@@ -19,6 +19,10 @@
   }
 }
 
+/* Hide scrollbar for horizontal nav */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 /* SOP document reader styles */
 .sop-content {
   scrollbar-width: thin;
