@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIntern } from "@/lib/get-interns";
+import type { InternCredential } from "@/data/interns";
+
+function getCredentialsFromEnv(): InternCredential[] {
+  const account = process.env.ONBOARD_1P_ACCOUNT;
+  const password = process.env.ONBOARD_1P_PASSWORD;
+  const secretKey = process.env.ONBOARD_1P_SECRET_KEY;
+
+  if (!account || !password || !secretKey) return [];
+
+  return [
+    { label: "Account", value: account, sensitive: false },
+    { label: "Password", value: password, sensitive: true },
+    { label: "Secret Key", value: secretKey, sensitive: true },
+  ];
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +37,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid access key" }, { status: 401 });
     }
 
+    const credentials = intern.credentials.length > 0
+      ? intern.credentials
+      : getCredentialsFromEnv();
+
     return NextResponse.json({
       success: true,
-      credentials: intern.credentials,
+      credentials,
     });
   } catch {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });

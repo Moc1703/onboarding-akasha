@@ -415,47 +415,14 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
               <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
                 <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
                   <KeyRound className="w-4 h-4 text-gold/50" />
-                  Secure Credentials
+                  1Password Access
                 </div>
 
-                {/* Desktop */}
-                <div className="hidden sm:block">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="border-b border-white/[0.06] text-white/35 text-xs uppercase tracking-widest">
-                        <th className="px-6 py-3 font-medium">Tool</th>
-                        <th className="px-6 py-3 font-medium">Username</th>
-                        <th className="px-6 py-3 font-medium">Temporary Password</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {credentials.map((cred, i) => (
-                        <tr
-                          key={cred.tool}
-                          className={`${i !== credentials.length - 1 ? "border-b border-white/[0.04]" : ""} hover:bg-white/[0.015] transition-colors`}
-                        >
-                          <td className="px-6 py-4 text-white font-medium text-sm">{cred.tool}</td>
-                          <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.username}</td>
-                          <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.password}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Mobile */}
-                <div className="sm:hidden divide-y divide-white/[0.04]">
+                <div className="divide-y divide-white/[0.04]">
                   {credentials.map((cred) => (
-                    <div key={cred.tool} className="px-5 py-4 space-y-2">
-                      <p className="text-white font-medium text-sm">{cred.tool}</p>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-white/35">Username</span>
-                        <span className="text-white/55 font-mono text-xs">{cred.username}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-white/35">Password</span>
-                        <span className="text-white/55 font-mono text-xs">{cred.password}</span>
-                      </div>
+                    <div key={cred.label} className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                      <span className="text-white/40 text-sm shrink-0">{cred.label}</span>
+                      <span className="text-white font-mono text-sm break-all sm:text-right">{cred.value}</span>
                     </div>
                   ))}
                 </div>
@@ -463,7 +430,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
 
               <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
                 <KeyRound className="w-3 h-3" />
-                Change all temporary passwords upon first login.
+                Use these credentials to log in to 1Password. Change your master password after first login.
               </p>
             </>
           ) : (

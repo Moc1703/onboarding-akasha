@@ -1,7 +1,7 @@
 export interface InternCredential {
-  tool: string;
-  username: string;
-  password: string;
+  label: string;
+  value: string;
+  sensitive?: boolean;
 }
 
 export interface InternProfile {
@@ -10,15 +10,12 @@ export interface InternProfile {
   department: string;
   startDate: string;
   accessExpires: string;
-  /** SERVER-ONLY: never send to client */
   accessKey: string;
   quizUrl: string;
   sopFile: string;
-  /** SERVER-ONLY: never send to client directly */
   credentials: InternCredential[];
 }
 
-/** Safe subset that can be sent to the browser */
 export interface InternPublic {
   id: string;
   name: string;
@@ -39,12 +36,7 @@ export const interns: InternProfile[] = [
     accessKey: "AYA-AYU-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
     sopFile: "/docs/PA-Department-Intern-SOP.docx",
-    credentials: [
-      { tool: "Google Workspace", username: "ayu@akashayoga.com", password: "Temp@1234" },
-      { tool: "Notion", username: "ayu@akashayoga.com", password: "Temp@1234" },
-      { tool: "Slack", username: "ayu@akashayoga.com", password: "Temp@1234" },
-      { tool: "Trello", username: "ayu@akashayoga.com", password: "Temp@1234" },
-    ],
+    credentials: [],
   },
   {
     id: "rina",
@@ -55,12 +47,7 @@ export const interns: InternProfile[] = [
     accessKey: "AYA-RINA-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
     sopFile: "/docs/PA-Department-Intern-SOP.docx",
-    credentials: [
-      { tool: "Google Workspace", username: "rina@akashayoga.com", password: "Temp@5678" },
-      { tool: "Notion", username: "rina@akashayoga.com", password: "Temp@5678" },
-      { tool: "Slack", username: "rina@akashayoga.com", password: "Temp@5678" },
-      { tool: "Trello", username: "rina@akashayoga.com", password: "Temp@5678" },
-    ],
+    credentials: [],
   },
   {
     id: "budi",
@@ -71,12 +58,7 @@ export const interns: InternProfile[] = [
     accessKey: "AYA-BUDI-2026",
     quizUrl: "https://tally.so/r/Ek0vA4",
     sopFile: "/docs/PA-Department-Intern-SOP.docx",
-    credentials: [
-      { tool: "Google Workspace", username: "budi@akashayoga.com", password: "Temp@9012" },
-      { tool: "Notion", username: "budi@akashayoga.com", password: "Temp@9012" },
-      { tool: "Slack", username: "budi@akashayoga.com", password: "Temp@9012" },
-      { tool: "Trello", username: "budi@akashayoga.com", password: "Temp@9012" },
-    ],
+    credentials: [],
   },
 ];
 
@@ -84,7 +66,6 @@ export function getInternById(id: string): InternProfile | undefined {
   return interns.find((i) => i.id === id);
 }
 
-/** Strip secrets — only return data safe for the browser */
 export function toPublic(intern: InternProfile): InternPublic {
   return {
     id: intern.id,

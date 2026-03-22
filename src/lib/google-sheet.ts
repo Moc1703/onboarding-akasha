@@ -1,7 +1,7 @@
-import type { InternProfile, InternPublic, InternCredential } from "@/data/interns";
+import type { InternProfile, InternPublic } from "@/data/interns";
 import { getDepartmentConfig } from "@/data/department-config";
 
-const CACHE_TTL = 60_000; // 1 minute
+const CACHE_TTL = 60_000;
 
 let cache: { data: InternProfile[]; ts: number } | null = null;
 
@@ -58,33 +58,17 @@ export async function fetchInternsFromSheet(): Promise<InternProfile[]> {
   }
 
   try {
-    const [internsRes, credsRes] = await Promise.all([
-      fetch(sheetCsvUrl(sheetId, "interns"), { next: { revalidate: 60 } }),
-      fetch(sheetCsvUrl(sheetId, "credentials"), { next: { revalidate: 60 } }),
-    ]);
+    const internsRes = await fetch(sheetCsvUrl(sheetId, "interns"), {
+      next: { revalidate: 60 },
+    });
 
-    if (!internsRes.ok || !credsRes.ok) {
-      console.error("Failed to fetch Google Sheet:", internsRes.status, credsRes.status);
+    if (!internsRes.ok) {
+      console.error("Failed to fetch Google Sheet:", internsRes.status);
       return [];
     }
 
     const internsCsv = await internsRes.text();
-    const credsCsv = await credsRes.text();
-
     const internRows = csvToRows(internsCsv);
-    const credRows = csvToRows(credsCsv);
-
-    const credsByIntern = new Map<string, InternCredential[]>();
-    for (const row of credRows) {
-      const id = row.internId;
-      if (!id) continue;
-      if (!credsByIntern.has(id)) credsByIntern.set(id, []);
-      credsByIntern.get(id)!.push({
-        tool: row.tool || "",
-        username: row.username || "",
-        password: row.password || "",
-      });
-    }
 
     const interns: InternProfile[] = internRows
       .filter((row) => row.id)
@@ -100,7 +84,7 @@ export async function fetchInternsFromSheet(): Promise<InternProfile[]> {
           accessKey: row.accessKey || "",
           quizUrl: deptConfig.quizUrl,
           sopFile: deptConfig.sopFile,
-          credentials: credsByIntern.get(row.id) || [],
+          credentials: [],
         };
       });
 
