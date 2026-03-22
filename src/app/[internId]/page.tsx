@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { interns, getInternById } from "@/data/interns";
+import { interns, getInternById, toPublic } from "@/data/interns";
 import OnboardingDashboard from "@/components/onboarding-dashboard";
 
 interface Props {
@@ -25,5 +25,5 @@ export default async function InternPage({ params }: Props) {
   const intern = getInternById(internId);
   if (!intern) notFound();
 
-  return <OnboardingDashboard intern={intern} />;
+  return <OnboardingDashboard intern={toPublic(intern)} />;
 }

@@ -1,17 +1,32 @@
+export interface InternCredential {
+  tool: string;
+  username: string;
+  password: string;
+}
+
 export interface InternProfile {
   id: string;
   name: string;
   department: string;
   startDate: string;
-  /** ISO date-time — after this, the page is locked */
   accessExpires: string;
-  /** Unique key each intern must enter to unlock their dashboard */
+  /** SERVER-ONLY: never send to client */
   accessKey: string;
-  /** Tally.so form URL for onboarding quiz */
   quizUrl: string;
-  /** Path to downloadable SOP document in /public */
   sopFile: string;
-  credentials: { tool: string; username: string; password: string }[];
+  /** SERVER-ONLY: never send to client directly */
+  credentials: InternCredential[];
+}
+
+/** Safe subset that can be sent to the browser */
+export interface InternPublic {
+  id: string;
+  name: string;
+  department: string;
+  startDate: string;
+  accessExpires: string;
+  quizUrl: string;
+  sopFile: string;
 }
 
 export const interns: InternProfile[] = [
@@ -67,4 +82,17 @@ export const interns: InternProfile[] = [
 
 export function getInternById(id: string): InternProfile | undefined {
   return interns.find((i) => i.id === id);
+}
+
+/** Strip secrets — only return data safe for the browser */
+export function toPublic(intern: InternProfile): InternPublic {
+  return {
+    id: intern.id,
+    name: intern.name,
+    department: intern.department,
+    startDate: intern.startDate,
+    accessExpires: intern.accessExpires,
+    quizUrl: intern.quizUrl,
+    sopFile: intern.sopFile,
+  };
 }

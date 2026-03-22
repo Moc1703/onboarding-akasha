@@ -2,16 +2,16 @@
 
 import { useState, useCallback, type FormEvent } from "react";
 import { ShieldCheck, KeyRound, AlertCircle, Loader2 } from "lucide-react";
-import type { InternProfile } from "@/data/interns";
+import type { InternPublic, InternCredential } from "@/data/interns";
 
 interface AccessGateProps {
-  intern: InternProfile;
-  onUnlocked: () => void;
+  intern: InternPublic;
+  onUnlocked: (credentials: InternCredential[]) => void;
 }
 
 export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
   const [key, setKey] = useState("");
-  const [error, setError] = useState(false);
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
@@ -19,27 +19,42 @@ export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
   const locked = attempts >= MAX_ATTEMPTS;
 
   const handleSubmit = useCallback(
-    (e: FormEvent) => {
+    async (e: FormEvent) => {
       e.preventDefault();
-      if (locked) return;
+      if (locked || loading) return;
 
       setLoading(true);
-      setError(false);
+      setError("");
 
-      // Small delay to feel like verification
-      setTimeout(() => {
-        if (key.trim() === intern.accessKey) {
+      try {
+        const res = await fetch("/api/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ internId: intern.id, accessKey: key.trim() }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
           sessionStorage.setItem(`onboard_${intern.id}`, "unlocked");
-          onUnlocked();
-        } else {
+          sessionStorage.setItem(`creds_${intern.id}`, JSON.stringify(data.credentials));
+          onUnlocked(data.credentials);
+        } else if (res.status === 401) {
           setAttempts((a) => a + 1);
-          setError(true);
+          setError("Invalid access key.");
           setKey("");
+        } else if (res.status === 403) {
+          setError("Access has expired.");
+        } else {
+          setError("Something went wrong. Please try again.");
         }
+      } catch {
+        setError("Network error. Please try again.");
+      } finally {
         setLoading(false);
-      }, 600);
+      }
     },
-    [key, intern, onUnlocked, locked]
+    [key, intern, onUnlocked, locked, loading]
   );
 
   return (
@@ -69,7 +84,7 @@ export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
                 value={key}
                 onChange={(e) => {
                   setKey(e.target.value);
-                  setError(false);
+                  setError("");
                 }}
                 disabled={locked || loading}
                 placeholder="e.g. AYA-XXXX-2026"
@@ -85,7 +100,7 @@ export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
             {error && !locked && (
               <p className="mt-2 text-xs text-red-400 flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5" />
-                Invalid access key. {MAX_ATTEMPTS - attempts} attempt{MAX_ATTEMPTS - attempts !== 1 ? "s" : ""} remaining.
+                {error} {MAX_ATTEMPTS - attempts} attempt{MAX_ATTEMPTS - attempts !== 1 ? "s" : ""} remaining.
               </p>
             )}
 
@@ -113,7 +128,7 @@ export default function AccessGate({ intern, onUnlocked }: AccessGateProps) {
           </button>
         </form>
 
-        <p className="mt-10 text-center text-xs text-white/20">
+        <p className="mt-10 text-center text-xs text-white/30">
           &copy; {new Date().getFullYear()} Akasha Yoga Academy
         </p>
       </div>

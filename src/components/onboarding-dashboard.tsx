@@ -18,7 +18,7 @@ import {
   ListChecks,
   ChevronRight,
 } from "lucide-react";
-import type { InternProfile } from "@/data/interns";
+import type { InternPublic, InternCredential } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
 import ExpiredPage from "./expired-page";
 import AccessGate from "./access-gate";
@@ -198,11 +198,12 @@ function Roadmap({ sopRead, activeSection }: { sopRead: boolean; activeSection: 
 
 /* ───────── Main Dashboard ───────── */
 
-export default function OnboardingDashboard({ intern }: { intern: InternProfile }) {
+export default function OnboardingDashboard({ intern }: { intern: InternPublic }) {
   const [expired, setExpired] = useState(
     () => new Date(intern.accessExpires).getTime() <= Date.now()
   );
   const [unlocked, setUnlocked] = useState(false);
+  const [credentials, setCredentials] = useState<InternCredential[] | null>(null);
   const [sopRead, setSopRead] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [checked, setChecked] = useState<boolean[]>(() => checklistItems.map(() => false));
@@ -212,7 +213,13 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`onboard_${intern.id}`);
-    if (stored === "unlocked") setUnlocked(true);
+    if (stored === "unlocked") {
+      setUnlocked(true);
+      const savedCreds = sessionStorage.getItem(`creds_${intern.id}`);
+      if (savedCreds) {
+        try { setCredentials(JSON.parse(savedCreds)); } catch { /* ignore */ }
+      }
+    }
 
     const sop = sessionStorage.getItem(`sop_read_${intern.id}`);
     if (sop === "true") setSopRead(true);
@@ -248,7 +255,10 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
   }, []);
 
   const handleExpired = useCallback(() => setExpired(true), []);
-  const handleUnlocked = useCallback(() => setUnlocked(true), []);
+  const handleUnlocked = useCallback((creds: InternCredential[]) => {
+    setUnlocked(true);
+    setCredentials(creds);
+  }, []);
 
   const handleSopRead = useCallback(() => {
     sessionStorage.setItem(`sop_read_${intern.id}`, "true");
@@ -400,59 +410,68 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
           </div>
           <SectionHeading id="credentials">Credentials &amp; Access</SectionHeading>
 
-          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-            <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
-              <KeyRound className="w-4 h-4 text-gold/50" />
-              Secure Credentials
-            </div>
-
-            {/* Desktop */}
-            <div className="hidden sm:block">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b border-white/[0.06] text-white/35 text-xs uppercase tracking-widest">
-                    <th className="px-6 py-3 font-medium">Tool</th>
-                    <th className="px-6 py-3 font-medium">Username</th>
-                    <th className="px-6 py-3 font-medium">Temporary Password</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {intern.credentials.map((cred, i) => (
-                    <tr
-                      key={cred.tool}
-                      className={`${i !== intern.credentials.length - 1 ? "border-b border-white/[0.04]" : ""} hover:bg-white/[0.015] transition-colors`}
-                    >
-                      <td className="px-6 py-4 text-white font-medium text-sm">{cred.tool}</td>
-                      <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.username}</td>
-                      <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.password}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Mobile */}
-            <div className="sm:hidden divide-y divide-white/[0.04]">
-              {intern.credentials.map((cred) => (
-                <div key={cred.tool} className="px-5 py-4 space-y-2">
-                  <p className="text-white font-medium text-sm">{cred.tool}</p>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/35">Username</span>
-                    <span className="text-white/55 font-mono text-xs">{cred.username}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-white/35">Password</span>
-                    <span className="text-white/55 font-mono text-xs">{cred.password}</span>
-                  </div>
+          {credentials && credentials.length > 0 ? (
+            <>
+              <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
+                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
+                  <KeyRound className="w-4 h-4 text-gold/50" />
+                  Secure Credentials
                 </div>
-              ))}
-            </div>
-          </div>
 
-          <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
-            <KeyRound className="w-3 h-3" />
-            Change all temporary passwords upon first login.
-          </p>
+                {/* Desktop */}
+                <div className="hidden sm:block">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-white/[0.06] text-white/35 text-xs uppercase tracking-widest">
+                        <th className="px-6 py-3 font-medium">Tool</th>
+                        <th className="px-6 py-3 font-medium">Username</th>
+                        <th className="px-6 py-3 font-medium">Temporary Password</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {credentials.map((cred, i) => (
+                        <tr
+                          key={cred.tool}
+                          className={`${i !== credentials.length - 1 ? "border-b border-white/[0.04]" : ""} hover:bg-white/[0.015] transition-colors`}
+                        >
+                          <td className="px-6 py-4 text-white font-medium text-sm">{cred.tool}</td>
+                          <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.username}</td>
+                          <td className="px-6 py-4 text-white/55 font-mono text-sm">{cred.password}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile */}
+                <div className="sm:hidden divide-y divide-white/[0.04]">
+                  {credentials.map((cred) => (
+                    <div key={cred.tool} className="px-5 py-4 space-y-2">
+                      <p className="text-white font-medium text-sm">{cred.tool}</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/35">Username</span>
+                        <span className="text-white/55 font-mono text-xs">{cred.username}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-white/35">Password</span>
+                        <span className="text-white/55 font-mono text-xs">{cred.password}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
+                <KeyRound className="w-3 h-3" />
+                Change all temporary passwords upon first login.
+              </p>
+            </>
+          ) : (
+            <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8 flex flex-col items-center justify-center gap-3 text-center">
+              <Lock className="w-6 h-6 text-white/20" />
+              <p className="text-sm text-white/40">Credentials could not be loaded. Please refresh or re-enter your access key.</p>
+            </div>
+          )}
         </section>
 
         <GoldDivider />
