@@ -26,7 +26,7 @@ export const interns: InternProfile[] = [
     startDate: "30 March 2026",
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-AYU-2026",
-    quizUrl: "https://tally.so/r/REPLACE_ME",
+    quizUrl: "https://tally.so/r/Ek0vA4",
     credentials: [
       { tool: "Google Workspace", username: "ayu@akashayoga.com", password: "Temp@1234" },
       { tool: "Notion", username: "ayu@akashayoga.com", password: "Temp@1234" },
@@ -41,7 +41,7 @@ export const interns: InternProfile[] = [
     startDate: "30 March 2026",
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-RINA-2026",
-    quizUrl: "https://tally.so/r/REPLACE_ME",
+    quizUrl: "https://tally.so/r/Ek0vA4",
     credentials: [
       { tool: "Google Workspace", username: "rina@akashayoga.com", password: "Temp@5678" },
       { tool: "Notion", username: "rina@akashayoga.com", password: "Temp@5678" },
@@ -56,7 +56,7 @@ export const interns: InternProfile[] = [
     startDate: "30 March 2026",
     accessExpires: "2026-04-06T23:59:59+07:00",
     accessKey: "AYA-BUDI-2026",
-    quizUrl: "https://tally.so/r/REPLACE_ME",
+    quizUrl: "https://tally.so/r/Ek0vA4",
     credentials: [
       { tool: "Google Workspace", username: "budi@akashayoga.com", password: "Temp@9012" },
       { tool: "Notion", username: "budi@akashayoga.com", password: "Temp@9012" },
