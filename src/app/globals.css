@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #B89146;
+  --color-gold-light: #d4ac6e;
+  --color-gold-dark: #96752f;
+  --color-charcoal: #1a1a1a;
+  --color-charcoal-light: #2a2a2a;
+  --color-charcoal-lighter: #333333;
+}
+
+@layer base {
+  body {
+    @apply bg-charcoal text-white antialiased;
+  }
+
+  ::selection {
+    @apply bg-gold/30 text-white;
+  }
+}
