@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   ListChecks,
   ChevronRight,
+  ShieldAlert,
+  Eye,
 } from "lucide-react";
 import type { InternPublic, InternCredential } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
@@ -208,6 +210,7 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
   const [hydrated, setHydrated] = useState(false);
   const [checked, setChecked] = useState<boolean[]>(() => checklistItems.map(() => false));
   const [activeSection, setActiveSection] = useState<string>("prereading");
+  const [credentialsRevealed, setCredentialsRevealed] = useState(false);
 
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -228,6 +231,9 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
     if (savedChecks) {
       try { setChecked(JSON.parse(savedChecks)); } catch { /* ignore */ }
     }
+
+    const revealed = sessionStorage.getItem(`creds_revealed_${intern.id}`);
+    if (revealed === "true") setCredentialsRevealed(true);
 
     setHydrated(true);
   }, [intern.id]);
@@ -411,28 +417,69 @@ export default function OnboardingDashboard({ intern }: { intern: InternPublic }
           <SectionHeading id="credentials">Credentials &amp; Access</SectionHeading>
 
           {credentials && credentials.length > 0 ? (
-            <>
-              <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-                <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
-                  <KeyRound className="w-4 h-4 text-gold/50" />
-                  1Password Access
-                </div>
-
-                <div className="divide-y divide-white/[0.04]">
-                  {credentials.map((cred) => (
-                    <div key={cred.label} className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
-                      <span className="text-white/40 text-sm shrink-0">{cred.label}</span>
-                      <span className="text-white font-mono text-sm break-all sm:text-right">{cred.value}</span>
-                    </div>
-                  ))}
+            !credentialsRevealed ? (
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-950/20 overflow-hidden">
+                <div className="px-5 sm:px-6 py-5 flex items-start gap-4">
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mt-0.5">
+                    <ShieldAlert className="w-5 h-5 text-amber-400" />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-white font-semibold text-sm">Confidentiality Notice</h3>
+                    <ul className="space-y-2 text-sm text-white/60 leading-relaxed">
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5">•</span>
+                        The credentials below are <strong className="text-white/80">strictly confidential</strong> and intended only for your use during the internship program.
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5">•</span>
+                        <strong className="text-white/80">Do not</strong> share, screenshot, copy to personal devices, or distribute these credentials to anyone.
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5">•</span>
+                        Unauthorized sharing may result in <strong className="text-white/80">immediate termination</strong> of your internship and revocation of all access.
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-amber-400 mt-0.5">•</span>
+                        If you suspect your credentials have been compromised, contact HR immediately.
+                      </li>
+                    </ul>
+                    <button
+                      onClick={() => {
+                        setCredentialsRevealed(true);
+                        sessionStorage.setItem(`creds_revealed_${intern.id}`, "true");
+                      }}
+                      className="mt-2 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-charcoal font-semibold text-sm hover:bg-gold-light transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" />
+                      I Understand — Reveal Credentials
+                    </button>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <>
+                <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
+                  <div className="px-5 sm:px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/35 text-xs uppercase tracking-widest font-medium">
+                    <KeyRound className="w-4 h-4 text-gold/50" />
+                    1Password Access
+                  </div>
 
-              <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
-                <KeyRound className="w-3 h-3" />
-                Use these credentials to log in to 1Password. Change your master password after first login.
-              </p>
-            </>
+                  <div className="divide-y divide-white/[0.04]">
+                    {credentials.map((cred) => (
+                      <div key={cred.label} className="px-5 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4">
+                        <span className="text-white/40 text-sm shrink-0">{cred.label}</span>
+                        <span className="text-white font-mono text-sm break-all sm:text-right">{cred.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="mt-3 text-xs text-white/35 flex items-center gap-1.5">
+                  <KeyRound className="w-3 h-3" />
+                  Use these credentials to log in to 1Password. Change your master password after first login.
+                </p>
+              </>
+            )
           ) : (
             <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8 flex flex-col items-center justify-center gap-3 text-center">
               <Lock className="w-6 h-6 text-white/20" />
