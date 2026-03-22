@@ -14,6 +14,7 @@ import {
   Building2,
   Sparkles,
   ClipboardCheck,
+  Lock,
 } from "lucide-react";
 import type { InternProfile } from "@/data/interns";
 import CountdownTimer from "./countdown-timer";
@@ -68,12 +69,20 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
     () => new Date(intern.accessExpires).getTime() <= Date.now()
   );
   const [unlocked, setUnlocked] = useState(false);
+  const [sopRead, setSopRead] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const stored = sessionStorage.getItem(`onboard_${intern.id}`);
     if (stored === "unlocked") setUnlocked(true);
+    const sop = sessionStorage.getItem(`sop_read_${intern.id}`);
+    if (sop === "true") setSopRead(true);
     setHydrated(true);
+  }, [intern.id]);
+
+  const handleSopRead = useCallback(() => {
+    sessionStorage.setItem(`sop_read_${intern.id}`, "true");
+    setSopRead(true);
   }, [intern.id]);
 
   const handleExpired = useCallback(() => setExpired(true), []);
@@ -161,26 +170,48 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
         <section>
           <SectionHeading>Department Specific SOP</SectionHeading>
 
-          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gold/10 text-gold shrink-0">
-                <BookOpen className="w-5 h-5" />
+          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="mt-1 inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gold/10 text-gold shrink-0">
+                  <BookOpen className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">{intern.department} SOP</h3>
+                  <p className="text-sm text-white/50">
+                    Standard Operating Procedures specific to the {intern.department}. Please review thoroughly before your first day.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-semibold text-white mb-1">{intern.department} SOP</h3>
-                <p className="text-sm text-white/50">
-                  Standard Operating Procedures specific to the {intern.department}. Please review thoroughly before your first day.
-                </p>
-              </div>
+
+              <a
+                href="#"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-charcoal font-semibold text-sm hover:bg-gold-light transition-colors shrink-0"
+              >
+                <Download className="w-4 h-4" />
+                Download SOP
+              </a>
             </div>
 
-            <a
-              href="#"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold text-charcoal font-semibold text-sm hover:bg-gold-light transition-colors shrink-0"
-            >
-              <Download className="w-4 h-4" />
-              Download SOP
-            </a>
+            {!sopRead ? (
+              <div className="mt-6 pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <p className="text-sm text-white/40">
+                  After reading the SOP, confirm below to unlock the onboarding quiz.
+                </p>
+                <button
+                  onClick={handleSopRead}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gold/30 bg-gold/10 text-gold font-semibold text-sm hover:bg-gold/20 transition-colors shrink-0 cursor-pointer"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  I have read the SOP
+                </button>
+              </div>
+            ) : (
+              <div className="mt-6 pt-6 border-t border-white/[0.06] flex items-center gap-2 text-green-400 text-sm">
+                <CheckCircle2 className="w-4 h-4" />
+                SOP marked as read — Quiz unlocked
+              </div>
+            )}
           </div>
         </section>
 
@@ -267,28 +298,48 @@ export default function OnboardingDashboard({ intern }: { intern: InternProfile 
         <section>
           <SectionHeading>Onboarding Quiz</SectionHeading>
 
-          <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
-            <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/40 text-xs uppercase tracking-widest font-medium">
-              <ClipboardCheck className="w-4 h-4 text-gold/60" />
-              Complete before your first day
-            </div>
+          {sopRead ? (
+            <>
+              <div className="rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
+                <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/40 text-xs uppercase tracking-widest font-medium">
+                  <ClipboardCheck className="w-4 h-4 text-gold/60" />
+                  Complete before your first day
+                </div>
 
-            <div className="w-full">
-              <iframe
-                src={intern.quizUrl}
-                width="100%"
-                height="600"
-                frameBorder="0"
-                title="Onboarding Quiz"
-                className="w-full bg-white rounded-b-2xl"
-              />
-            </div>
-          </div>
+                <div className="w-full">
+                  <iframe
+                    src={intern.quizUrl}
+                    width="100%"
+                    height="600"
+                    frameBorder="0"
+                    title="Onboarding Quiz"
+                    className="w-full bg-white rounded-b-2xl"
+                  />
+                </div>
+              </div>
 
-          <p className="mt-4 text-xs text-white/30 flex items-center gap-1.5">
-            <ClipboardCheck className="w-3 h-3" />
-            Please complete the quiz to confirm you have read all onboarding materials.
-          </p>
+              <p className="mt-4 text-xs text-white/30 flex items-center gap-1.5">
+                <ClipboardCheck className="w-3 h-3" />
+                Please complete the quiz to confirm you have read all onboarding materials.
+              </p>
+            </>
+          ) : (
+            <div className="relative rounded-2xl border border-white/[0.06] bg-charcoal-light overflow-hidden">
+              <div className="absolute inset-0 bg-charcoal/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-white/30" />
+                </div>
+                <p className="text-white/50 text-sm font-medium">Read the SOP first to unlock the quiz</p>
+                <p className="text-white/25 text-xs">Scroll up to the SOP section and confirm you have read it</p>
+              </div>
+
+              <div className="px-6 py-4 border-b border-white/[0.06] flex items-center gap-2 text-white/40 text-xs uppercase tracking-widest font-medium">
+                <ClipboardCheck className="w-4 h-4 text-gold/60" />
+                Complete before your first day
+              </div>
+              <div className="w-full h-[300px] bg-charcoal-lighter" />
+            </div>
+          )}
         </section>
 
         {/* ── Footer ── */}
