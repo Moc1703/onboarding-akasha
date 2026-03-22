@@ -112,7 +112,7 @@ export default function SopReader({ sopFile, department, sopRead, onConfirmRead 
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        {(sopRead || reachedEnd) && (
           <a
             href={sopFile}
             download
@@ -121,7 +121,7 @@ export default function SopReader({ sopFile, department, sopRead, onConfirmRead 
             <Download className="w-3.5 h-3.5" />
             Download
           </a>
-        </div>
+        )}
       </div>
 
       {/* Reading progress bar */}
