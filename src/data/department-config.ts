@@ -13,11 +13,11 @@ const config: Record<string, DepartmentConfig> = {
     sopFile: "/docs/PA-Department-Intern-SOP.docx",
   },
   "Sales": {
-    quizUrl: "https://tally.so/r/Ek0vA4",
+    quizUrl: "https://tally.so/r/7RZ1gA",
     sopFile: "/docs/Sales-Department-Intern-SOP.docx",
   },
   "Sales Department": {
-    quizUrl: "https://tally.so/r/Ek0vA4",
+    quizUrl: "https://tally.so/r/7RZ1gA",
     sopFile: "/docs/Sales-Department-Intern-SOP.docx",
   },
   "Marketing": {
@@ -29,11 +29,11 @@ const config: Record<string, DepartmentConfig> = {
     sopFile: "/docs/Marketing-Department-Intern-SOP.docx",
   },
   "Support": {
-    quizUrl: "https://tally.so/r/Ek0vA4",
+    quizUrl: "https://tally.so/r/44jAlB",
     sopFile: "/docs/Support-Department-Intern-SOP.docx",
   },
   "Support Department": {
-    quizUrl: "https://tally.so/r/Ek0vA4",
+    quizUrl: "https://tally.so/r/44jAlB",
     sopFile: "/docs/Support-Department-Intern-SOP.docx",
   },
 };
