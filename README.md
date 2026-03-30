@@ -164,8 +164,9 @@ POST /api/verify
 | `ONBOARD_1P_ACCOUNT` | Yes | `.env.local` + Vercel | 1Password account email |
 | `ONBOARD_1P_PASSWORD` | Yes | `.env.local` + Vercel | 1Password master password |
 | `ONBOARD_1P_SECRET_KEY` | Yes | `.env.local` + Vercel | 1Password secret key |
-| `GOOGLE_SHEET_CSV_URL` | No* | `.env.local` + Vercel | Published CSV URL from “Publish to web” (preferred) |
+| `GOOGLE_SHEET_CSV_URL` | No* | `.env.local` + Vercel | Published CSV URL from "Publish to web" (preferred) |
 | `GOOGLE_SHEET_ID` | No* | `.env.local` + Vercel | Legacy: spreadsheet ID (needs sheet shared publicly; may 401 if only published) |
+| `LOGIN_LOG_WEBHOOK_URL` | No | `.env.local` + Vercel | Google Apps Script Web App URL for login IP logging (see [Login IP Logging](#login-ip-logging)) |
 
 \*Use **`GOOGLE_SHEET_CSV_URL`** with the URL Google gives after **File → Publish to web → CSV**. If Step 4 shows “Credentials unavailable”, check that all three **`ONBOARD_1P_*`** variables are set in **Vercel → Settings → Environment Variables** for **Production** (and redeploy).
 
@@ -372,6 +373,60 @@ Edit `src/data/department-config.ts` → update the `quizUrl` for the relevant d
 **Via code:** Update `accessExpires` in `src/data/interns.ts`.
 
 Format: ISO 8601 with timezone, e.g. `2026-05-01T23:59:59+07:00`
+
+---
+
+## Login IP Logging
+
+Every login attempt (successful or not) is logged with the intern's IP address, user agent, status, and timestamp. This is useful for security auditing.
+
+**Without any setup**, all login events are logged to the server console (visible in **Vercel → Deployments → Functions → Logs**).
+
+**For persistent logging to Google Sheets**, set up a Google Apps Script webhook:
+
+1. Open your Google Sheet → **Extensions → Apps Script**
+2. Replace the default code with:
+
+```javascript
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Login Logs");
+  if (!sheet) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Login Logs");
+    sheet.appendRow(["Timestamp", "Intern ID", "Name", "IP Address", "User Agent", "Status"]);
+    sheet.getRange("1:1").setFontWeight("bold");
+  }
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    data.timestamp,
+    data.internId,
+    data.internName,
+    data.ip,
+    data.userAgent,
+    data.status
+  ]);
+  return ContentService.createTextOutput("OK");
+}
+```
+
+3. Click **Deploy → New deployment**
+4. Type: **Web app**
+5. Execute as: **Me**
+6. Who has access: **Anyone**
+7. Click **Deploy** → copy the URL
+8. Add to `.env.local` and Vercel:
+
+```
+LOGIN_LOG_WEBHOOK_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+```
+
+Logged statuses:
+
+| Status | Meaning |
+|---|---|
+| `success` | Valid access key, credentials served |
+| `failed_key` | Wrong access key entered |
+| `expired` | Access period has ended |
+| `not_found` | Intern ID doesn't exist |
 
 ---
 
